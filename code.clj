@@ -115,19 +115,22 @@
 
 ;;day 3/2
 
-(defn most-common [lines invert?]
+(defn most-common [lines & [invert?]]
   (loop [filtered-lines lines
          pos 0]
-    (if (or (<= (count filtered-lines) 1) (> pos (count (first lines))))
-      filtered-lines
+    (if (and (> (count filtered-lines) 1) (< pos (count (first lines))))
       (let [digit (nth (digits filtered-lines) pos)
             char-digit (-> (if invert? (- 1 digit) digit) str first)]
         (recur (filter #(= (nth % pos) char-digit) filtered-lines)
-               (inc pos))))))
+               (inc pos)))
+      (Long/parseLong (first filtered-lines) 2))))
+
+(defn least-common [lines]
+  (most-common lines true))
 
 (defn day03-2 [lines]
-  (let [O₂    (Long/parseLong (first (most-common lines false)) 2)
-        CO₂   (Long/parseLong (first (most-common lines true)) 2)]
+  (let [O₂   (most-common lines)
+        CO₂  (least-common lines)]
     (* O₂ CO₂)))
 
 (comment
@@ -167,7 +170,6 @@
   [[x1 y1 x2 y2]]
   (map vector (abs-range x1 x2) (abs-range y1 y2)))
 
-
 (defn day05-1 [input]
   (->> input
        (map make-line)
@@ -196,5 +198,28 @@
   (def input (readfile "inputs/year2021/day5"))
   (day05-1 input) ;; => 5698
   (day05-2 input) ;; => 15463
+
+  )
+
+(comment
+
+  ;;implement (frequencies (apply concat lines))
+
+  (def lines
+    [[[0 0] [1 1] [2 2]]
+     [[0 0] [1 1] [2 2]]
+     [[0 0] [0 1] [0 2]]])
+
+  ;;procedural pseudo-code
+  ;;graph = {}
+  ;;foreach line in lines:
+  ;;  foreach point in line:
+  ;;    graph[point]+=1
+
+  (letfn [(line [graph point]
+            (update graph point #(inc (or % 0))))]
+    (reduce #(reduce line %1 %2) {} lines))
+
+  ;;but such a nesting of 'reduce' is avoided by '(apply concat ...)' in the first place
 
   )
